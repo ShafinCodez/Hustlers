@@ -24,36 +24,34 @@
         <h1 class="animate-hero">HUSTLERS</h1>
         <p>Secure Your Ambition.</p>
         <div class="cta-buttons">
-            <button id="login-btn" class="btn btn-primary animate-pulse">Login / Sign Up</button>
+            <button id="login-btn" class="btn btn-primary animate-pulse">Login</button>
+            <button id="signup-btn" class="btn btn-secondary">Sign Up</button>
         </div>
     </div>
 
-    <div id="phone-auth-modal" class="modal">
+    <div id="login-modal" class="modal">
         <div class="modal-content slide-in">
             <span class="close-btn">&times;</span>
-            
-            <div id="phone-entry-step">
-                <h2>SECURE ACCESS</h2>
-                <p>Enter your phone number to continue.</p>
-                <form id="phone-form">
-                    <div class="phone-input-group">
-                        <span>+880</span>
-                        <input type="tel" id="phone-number" placeholder="171 234 5678" required>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Send Code</button>
-                </form>
-            </div>
+            <h2>SECURE LOGIN</h2>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email Address" required>
+                <input type="password" id="login-password" placeholder="Password" required>
+                <button type="submit" class="btn btn-primary">Authenticate</button>
+                <a href="#" id="forgot-password-link">Forgot Password?</a>
+            </form>
+        </div>
+    </div>
 
-            <div id="code-entry-step" style="display: none;">
-                <h2>VERIFY CODE</h2>
-                <p>A 6-digit code was sent to your phone.</p>
-                <form id="code-form">
-                    <input type="text" id="verification-code" placeholder="123456" required>
-                    <button type="submit" class="btn btn-primary">Verify & Enter</button>
-                </form>
-            </div>
-            
-            <div id="recaptcha-container"></div>
+    <div id="signup-modal" class="modal">
+        <div class="modal-content slide-in">
+            <span class="close-btn">&times;</span>
+            <h2>BECOME A HUSTLER</h2>
+            <form id="signup-form">
+                <input type="text" id="signup-name" placeholder="Full Name" required>
+                <input type="email" id="signup-email" placeholder="Email Address" required>
+                <input type="password" id="signup-password" placeholder="Secure Password (min. 6 characters)" required>
+                <button type="submit" class="btn btn-primary">Claim Your Spot</button>
+            </form>
         </div>
     </div>
 
