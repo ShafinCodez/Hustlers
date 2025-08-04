@@ -24,7 +24,6 @@ body {
     line-height: 1.6;
     overflow-x: hidden;
     position: relative;
-    /* Custom cursor rule is removed from here */
 }
 
 /* Hero Image Background */
@@ -86,7 +85,7 @@ p {
     padding: 1rem 2.5rem;
     border: 2px solid transparent;
     border-radius: 4px;
-    cursor: pointer; /* Changed back to default pointer */
+    cursor: pointer;
     font-size: 1rem;
     font-weight: 600;
     text-transform: uppercase;
@@ -163,28 +162,3 @@ body:has(.dashboard-container) { overflow-y: auto; }
 #message-input { flex: 1; }
 .send-btn { background: none; border: none; padding: 0.5rem; cursor: pointer; }
 .send-btn img { width: 24px; height: 24px; filter: invert(78%) sepia(58%) saturate(1352%) hue-rotate(359deg) brightness(104%) contrast(104%); /* Gold color */}
-/* Add this at the end of the file */
-.phone-input-group {
-    display: flex;
-    align-items: center;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
-    background-color: var(--primary-bg);
-}
-.phone-input-group:focus-within {
-    border-color: var(--accent-gold);
-    box-shadow: 0 0 15px var(--accent-glow);
-}
-.phone-input-group span {
-    padding: 1rem;
-    color: var(--text-secondary);
-}
-.phone-input-group input {
-    border: none;
-    margin-bottom: 0;
-    flex-grow: 1;
-}
-.phone-input-group input:focus {
-    box-shadow: none;
-}
