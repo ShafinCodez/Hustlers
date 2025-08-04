@@ -1,7 +1,4 @@
-// Authentication Logic for Phone Sign-In
-
-// This will hold the confirmation result object after sending the code
-let confirmationResult;
+// Authentication Logic for Email/Password
 
 document.addEventListener('DOMContentLoaded', () => {
     // Listen for auth state changes
@@ -9,92 +6,99 @@ document.addEventListener('DOMContentLoaded', () => {
         if (user) {
             // User is signed in.
             console.log('User is logged in:', user);
-            // Check if the user is new (has no display name) and prompt them to set one
-            handleNewUserProfile(user); 
+            // If on the landing page, redirect to dashboard
+            if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
+                window.location.href = 'dashboard.html';
+            }
         } else {
             // User is signed out.
             console.log('User is logged out.');
+            // If on the dashboard, redirect to landing page
             if (window.location.pathname.endsWith('dashboard.html')) {
                 window.location.href = 'index.html';
             }
         }
         hideSpinner();
     });
-    
-    // --- Setup reCAPTCHA Verifier ---
-    // This is invisible and verifies the user is not a bot.
-    window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
-        'size': 'invisible',
-        'callback': (response) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-            console.log("reCAPTCHA solved");
-        }
-    });
 
-    // --- Form Event Listeners ---
-    const phoneForm = document.getElementById('phone-form');
-    if (phoneForm) {
-        phoneForm.addEventListener('submit', sendVerificationCode);
+    // Event Listeners for auth forms
+    const loginForm = document.getElementById('login-form');
+    if (loginForm) {
+        loginForm.addEventListener('submit', handleLogin);
     }
 
-    const codeForm = document.getElementById('code-form');
-    if (codeForm) {
-        codeForm.addEventListener('submit', verifyCode);
+    const signupForm = document.getElementById('signup-form');
+    if (signupForm) {
+        signupForm.addEventListener('submit', handleSignup);
     }
 
     const logoutBtn = document.getElementById('logout-btn');
     if (logoutBtn) {
         logoutBtn.addEventListener('click', handleLogout);
     }
+    
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    if(forgotPasswordLink) {
+        forgotPasswordLink.addEventListener('click', handlePasswordReset);
+    }
 });
 
 /**
- * Step 1: Sends the verification code to the user's phone.
+ * Handles user login.
+ * @param {Event} e - The form submission event.
  */
-async function sendVerificationCode(e) {
+async function handleLogin(e) {
     e.preventDefault();
     showSpinner();
-
-    const phoneInput = document.getElementById('phone-number').value;
-    // Format the number correctly for Bangladesh
-    const phoneNumber = `+880${phoneInput}`;
-    const appVerifier = window.recaptchaVerifier;
+    const email = document.getElementById('login-email').value;
+    const password = document.getElementById('login-password').value;
 
     try {
-        confirmationResult = await auth.signInWithPhoneNumber(phoneNumber, appVerifier);
-        
-        // Switch to the code entry view
-        document.getElementById('phone-entry-step').style.display = 'none';
-        document.getElementById('code-entry-step').style.display = 'block';
-        showAlert('Verification code sent!', 'success');
-        
+        await auth.signInWithEmailAndPassword(email, password);
+        // Redirect is handled by onAuthStateChanged
     } catch (error) {
-        console.error('SMS not sent error:', error);
+        console.error('Login Error:', error);
         showAlert(error.message);
-        // Reset reCAPTCHA to allow retries
-        recaptchaVerifier.render().then(widgetId => {
-            grecaptcha.reset(widgetId);
-        });
-    } finally {
         hideSpinner();
     }
 }
 
 /**
- * Step 2: Verifies the code entered by the user.
+ * Handles new user registration.
+ * @param {Event} e - The form submission event.
  */
-async function verifyCode(e) {
+async function handleSignup(e) {
     e.preventDefault();
     showSpinner();
-    
-    const code = document.getElementById('verification-code').value;
+    const name = document.getElementById('signup-name').value;
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
 
     try {
-        await confirmationResult.confirm(code);
-        // Login successful. The onAuthStateChanged listener will handle the redirect.
-        // The modal will be closed by the main app.js logic on successful login redirect
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const user = userCredential.user;
+        
+        // Set user's display name and create a user profile in Firestore
+        await user.updateProfile({ displayName: name });
+        await db.collection('users').doc(user.uid).set({
+            uid: user.uid,
+            displayName: name,
+            email: user.email,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        await user.sendEmailVerification();
+        showAlert('Verification email sent! Please check your inbox.', 'success');
+        
+        // Log out the user until they verify their email
+        auth.signOut();
+        hideSpinner();
+        
+        // Close modal or give feedback
+        document.getElementById('signup-modal').style.display = 'none';
+
     } catch (error) {
-        console.error('Code verification error:', error);
+        console.error('Signup Error:', error);
         showAlert(error.message);
         hideSpinner();
     }
@@ -116,41 +120,21 @@ async function handleLogout() {
 }
 
 /**
- * After first login, prompts a new user to set their display name.
+ * Handles password reset request.
  */
-async function handleNewUserProfile(user) {
-    // A user is "new" if they have a phone number but no display name yet.
-    const isNewUser = user.phoneNumber && !user.displayName;
-
-    if (isNewUser) {
-        const displayName = prompt("Welcome! Please enter your name to complete your profile.");
-        if (displayName) {
-            try {
-                await user.updateProfile({ displayName: displayName });
-                // Also save to Firestore
-                await db.collection('users').doc(user.uid).set({
-                    uid: user.uid,
-                    displayName: displayName,
-                    phoneNumber: user.phoneNumber
-                }, { merge: true }); // Use merge to not overwrite existing data
-
-                // Now we can redirect
-                window.location.href = 'dashboard.html';
-
-            } catch (error) {
-                console.error("Error updating profile:", error);
-                showAlert("Could not save your name. Please try again.");
-                // Redirect anyway, they can set it later
-                window.location.href = 'dashboard.html';
-            }
-        } else {
-             // If they cancel the prompt, just redirect them
-            window.location.href = 'dashboard.html';
-        }
-    } else {
-        // For existing users, just redirect
-        if (window.location.pathname.endsWith('index.html') || window.location.pathname === '/') {
-            window.location.href = 'dashboard.html';
+async function handlePasswordReset(e) {
+    e.preventDefault();
+    const email = prompt("Please enter your email address to reset your password:");
+    if (email) {
+        showSpinner();
+        try {
+            await auth.sendPasswordResetEmail(email);
+            showAlert('Password reset email sent. Please check your inbox.', 'success');
+        } catch (error) {
+            console.error('Password Reset Error:', error);
+            showAlert(error.message);
+        } finally {
+            hideSpinner();
         }
     }
 }
