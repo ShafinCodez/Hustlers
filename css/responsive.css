@@ -1,0 +1,32 @@
+/* Tablet: 768px - 1023px */
+@media (max-width: 1023px) {
+    h1 { font-size: 5rem; }
+    .sidebar { width: 200px; }
+    .sidebar-nav a { font-size: 0.9rem; }
+}
+
+/* Mobile: 320px - 767px */
+@media (max-width: 767px) {
+    h1 { font-size: 3.5rem; letter-spacing: 2px; }
+    p { font-size: 1rem; }
+    .cta-buttons { flex-direction: column; width: 80%; }
+    
+    .dashboard-container { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; flex-direction: row; align-items: center; justify-content: space-between; padding: 0.5rem 1rem; border-right: none; border-bottom: 1px solid var(--border-color); }
+    .sidebar-nav { display: flex; gap: 0.5rem; margin-top: 0; }
+    .sidebar-nav a { padding: 0.5rem; }
+    .sidebar-nav li a { text-indent: -9999px; line-height: 0; width: 40px; text-align: center; }
+     .sidebar-nav li a::before {
+        text-indent: 0;
+        font-size: 1.2rem;
+        font-family: initial; /* Use default for emoji */
+        content: attr(href); /* Fallback */
+    }
+    /* Set icons for mobile nav */
+    .sidebar-nav li a[href="#chat"]::before { content: '💬'; }
+    .sidebar-nav li a[href="#gallery"]::before { content: '🖼️'; }
+    .sidebar-nav li a[href="#docs"]::before { content: '📄'; }
+
+    .sidebar-footer { flex-direction: row; align-items: center; }
+    #user-display-name { display: none; }
+}
